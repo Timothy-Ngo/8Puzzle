@@ -19,6 +19,7 @@ public class Tile : MonoBehaviour
 
     public int GetNum()
     {
+        
         return int.Parse(name);
     }
 }

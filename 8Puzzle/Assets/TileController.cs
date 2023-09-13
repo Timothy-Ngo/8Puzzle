@@ -28,22 +28,15 @@ public class TileController : MonoBehaviour
     public List<Tile> tiles;
     public Tile emptyTile;
 
-    public GameObject[,] spaceMatrix = new GameObject[MAXROW, MAXCOL]; // Store's the tiles in each space
-    //Don't use space matrix
-
+    
     // Start is called before the first frame update
     void Start()
     {
         currentState = new GameState();
-        
-        foreach(GameObject space in spaceObjects)
-        {
-            tiles.Add(space.GetComponentInChildren<Tile>());
-        }
 
-        UpdateBoardData();
-        
-        SetEmptySpace();
+        UpdateEverything();
+        //currentState.PrintGameBoardData();
+
     }
     public void PrintTiles() 
     {
@@ -52,6 +45,12 @@ public class TileController : MonoBehaviour
             Debug.Log(tile.GetNum());
         }
     }
+    
+    public void UpdateEverything()
+    {
+        UpdatePositions();
+        UpdateBoardData();
+    }
 
     void UpdatePositions()
     {
@@ -59,63 +58,25 @@ public class TileController : MonoBehaviour
         {
             tile.UpdatePosition();
         }
+    
     }
 
     
     void UpdateBoardData()
     {
-        int index = 0;
         foreach (Tile tile in tiles)
         {
             currentState.gameBoard[tile.position] = tile.GetNum();
+            //Debug.Log(tile.position + " " + tile.GetNum());
         }
+        
+        //Debug.Log(currentState.gameBoard.Count);
         //currentState.PrintGameBoardData();
     }
     
-    /*
-    void InitBoardData()
-    {
-        int index = 0;
-        for (int row = 0; row < MAXROW; row++)
-        {
-            for (int col = 0; col < MAXCOL; col++)
-            {
-                if (index == 8)
-                {
-                    break;
-                }
-                //Debug.Log(index);
-                string name = (index + 1).ToString();
-                Debug.Log(name);
-                spaceMatrix[row, col] = spaces[index].transform.Find(name).gameObject;
-                Debug.Log(spaceMatrix[row, col]);
-                index++;
-            }
-        }
-
-        spaceMatrix[MAXROW - 1, MAXCOL - 1] = spaces[index].transform.Find("0").gameObject;
-    }
-    */
-
-    int EmptyMatrixPos()
-    {
-        for (int row = 0; row < MAXROW; row++)
-        {
-            for (int col = 0; col < MAXCOL; col++)
-            {
-                if (spaceMatrix[row, col] == emptyTile.transform.parent.gameObject)
-                {
-                    //Debug.Log(spaceMatrix[row, col]);
-                    string num = row.ToString() + col.ToString();
-                    return int.Parse(num);
-                }
-            }
-        }
-
-        return -1; // Empty could not be found
-
-    }
-
+    
+   
+    
     public RaycastHit hit;
 
     // Update is called once per frame
@@ -201,7 +162,7 @@ public class TileController : MonoBehaviour
         {
             MoveEmpty(cardinalDir[Random.Range(0,4)]);
         }
-        UpdateBoardData();
+        UpdateEverything();
     }
 
     public void MoveEmpty(Vector3 direction)
@@ -213,8 +174,7 @@ public class TileController : MonoBehaviour
             {
                 swapTilePositions(hit.collider.gameObject, emptyTile.gameObject);
                 //Debug.Log("Move Empty Raycast hits: " + hit.collider.gameObject.name);
-                SetEmptySpace();
-                UpdatePositions();
+                UpdateEverything();
             }
         }
     }
@@ -228,13 +188,7 @@ public class TileController : MonoBehaviour
         tile1.transform.localPosition = swapPositionOffset;
         tile2.transform.SetParent(temp);
         tile2.transform.localPosition = swapPositionOffset;
-
     
-    }
-
-    public void SetEmptySpace()
-    {
-        //emptySpace = emptyTile.transform.parent.gameObject;
     }
 
     
@@ -248,45 +202,23 @@ public class GameState
         10, 11, 12,
         20, 21, 22
     };
-    int emptyMatrixPosition;
+    public int emptyMatrixPosition;
     public GameState()
     {
         InitBoardData();
     }
-
+    public GameState(GameState newState)
+    {
+        gameBoard = new Dictionary<int, int>(newState.gameBoard);
+        emptyMatrixPosition = newState.emptyMatrixPosition;
+    }
     public GameState(Dictionary<int, int> newBoard)
     {
-        gameBoard = newBoard;
+        gameBoard = new Dictionary<int,int>(newBoard);
 
         emptyMatrixPosition = GetEmptyMatrixPosition();
     }
-    public Dictionary<int, int> ApplyMove(Vector3 move) // Not Tested
-    {
-        Dictionary<int, int> oldBoard = gameBoard;
-        Dictionary<int, int> newBoard = new Dictionary<int, int>();
-        int emptyPos = GetEmptyMatrixPosition();
-
-        if (move == Vector3.up)
-        {
-            SwapTilePositions(emptyPos, emptyPos - 10);
-        }
-        else if (move == Vector3.down)
-        {
-            SwapTilePositions(emptyPos, emptyPos + 10);
-        }
-        else if (move == Vector3.left)
-        {
-            SwapTilePositions(emptyPos, emptyPos - 1);
-        }
-        else if (move == Vector3.right)
-        {
-            SwapTilePositions(emptyPos, emptyPos + 1);
-        }
-        newBoard = gameBoard;
-        gameBoard = oldBoard;
-
-        return newBoard;
-    }
+    
     public bool IsGoalState() // Not Tested
     {
         if (gameBoard[22] != 0)
@@ -296,6 +228,10 @@ public class GameState
         int tileNum = 1;
         foreach (int position in matrixPositions)
         {
+            if (position == 22)
+            {
+                break;
+            }
             if (gameBoard[position] != tileNum)
             {
                 return false;
@@ -315,13 +251,7 @@ public class GameState
         Debug.Log("---------------------------------------------");
     }
 
-    public void SwapTilePositions(int pos1, int pos2)
-    {
-        int temp = gameBoard[pos1];
-        gameBoard[pos1] = gameBoard[pos2];
-        gameBoard[pos2] = temp;
-    }
-    public int GetEmptyMatrixPosition()
+    public int GetEmptyMatrixPosition() // Can be optimized
     {
         foreach (int position in matrixPositions)
         {
@@ -351,9 +281,9 @@ public class GameState
     }
 
 
-    public List<Vector3> PossibleMoves() // Not Tested
+    public List<Vector3> PossibleMoves() // Not 
     {
-        int emptyPos = GetEmptyMatrixPosition();
+        int emptyPos = emptyMatrixPosition;
         List<Vector3> possibleMoves = new List<Vector3>();
         if (matrixPositions.Contains(emptyPos - 10))
         {
@@ -374,15 +304,4 @@ public class GameState
         return possibleMoves;
     }
 
-    /*
-    public override Dictionary<int,int> GetHashCode()
-    {
-        return gameBoard;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-    */
 }
