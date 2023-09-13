@@ -30,8 +30,9 @@ public class DFSAgent : MonoBehaviour
             //tc.currentState.PrintGameBoardData();
 
             Debug.Log("Key Pressed");
+            
             //DFS(tc.currentState.gameBoard);
-            BFS(tc.currentState.gameBoard);
+            BFS(tc.currentState);
         }
         
     }
@@ -42,9 +43,12 @@ public class DFSAgent : MonoBehaviour
         20, 21, 22
     };
 
-    public bool IsGoalState(Dictionary<int,int> gameBoard) // Not Tested
+    
+
+    public bool IsGoalState(List<int> gameBoard) // Works
     {
-        if (gameBoard[22] != 0)
+        //PrintGameBoardData(gameBoard); 
+        if (gameBoard[0] != 22)
         {
             return false;
         }
@@ -55,7 +59,7 @@ public class DFSAgent : MonoBehaviour
             {
                 break;
             }
-            if (gameBoard[position] != tileNum)
+            if (gameBoard[tileNum] != position)
             {
                 return false;
             }
@@ -63,19 +67,11 @@ public class DFSAgent : MonoBehaviour
         }
         return true;
     }
-    public int GetEmptyMatrixPosition(Dictionary<int, int> gameBoard) // Can be optimized
+    public int GetEmptyMatrixPosition(List<int> gameBoard) // Can be optimized
     {
-        foreach (int position in matrixPositions)
-        {
-            if (gameBoard[position] == 0)
-            {
-                return position;
-            }
-        }
-        Debug.Log("Could not find Empty Matrix Position");
-        return -1; // Could not find the empty Position
+        return gameBoard[0];
     }
-    public List<Vector3> PossibleMoves(Dictionary<int,int> board) 
+    public List<Vector3> PossibleMoves(List<int> board) 
     {
         int emptyPos = GetEmptyMatrixPosition(board);
         List<Vector3> possibleMoves = new List<Vector3>();
@@ -97,14 +93,14 @@ public class DFSAgent : MonoBehaviour
         }
         return possibleMoves;
     }
-    public void BFS(Dictionary<int,int> initialBoard)
+    public void BFS(List<int> initialBoard)
     {
-        Queue<Dictionary<int,int>> queue = new Queue<Dictionary<int,int>>();
+        Queue<List<int>> queue = new Queue<List<int>>();
 
         queue.Enqueue(initialBoard);
         //initialState.PrintGameBoardData();
 
-        HashSet<Dictionary<int, int>> visited = new HashSet<Dictionary<int, int>>();
+        HashSet<List<int>> visited = new HashSet<List<int>>();
 
         //Dictionary<GameState, GameState> parent = new Dictionary<GameState, GameState>(); // <current state, parent state> Not sure if I should make it <GameState, move used to achieve this state>
         //parent[initialState] = null;
@@ -113,7 +109,7 @@ public class DFSAgent : MonoBehaviour
         while (queue.Count > 0)
         {
             //Debug.Log(queue.Count);
-            Dictionary<int,int> currentBoard = new Dictionary<int,int>(queue.Dequeue()) ;
+            List<int> currentBoard = new List<int>(queue.Dequeue()) ;
             //current.PrintGameBoardData();
             if (!visited.Contains(currentBoard))
             {
@@ -139,18 +135,18 @@ public class DFSAgent : MonoBehaviour
                 }
                 */
                 //Debug.Log(visited.Count);
-                GameState newState;
+                List<int> newBoard;
                 foreach (Vector3 move in PossibleMoves(currentBoard))
                 {
-                    newState = new GameState(ApplyMove(move, currentBoard)); // ApplyMove should not change current
+                    newBoard = ApplyMove(move, currentBoard); // ApplyMove should not change current
                                                                         //newState.PrintGameBoardData();
 
                     //Debug.Log(!visited.Contains(newState.gameBoard));
-                    if (!visited.Contains(newState.gameBoard))
+                    if (!visited.Contains(newBoard))
                     {
                         //Debug.Log("Check1");
                         //Debug.Log(stack.Count);
-                        queue.Enqueue(newState.gameBoard);
+                        queue.Enqueue(newBoard);
                         //Debug.Log(stack.Count);
                     }
 
@@ -166,10 +162,11 @@ public class DFSAgent : MonoBehaviour
                 break;
             }
             */
-
+            break;
         }
     }
 
+    /*
     
     public void DFS(Dictionary<int,int> initialBoard) // I'm going to make the states be the actions that get to them
     {
@@ -197,25 +194,25 @@ public class DFSAgent : MonoBehaviour
                     Debug.Log("REACHED GOAL STATE");
                     Debug.Log(visited.Count);
                     //current.PrintGameBoardData();
-                    /*
+                    
                     foreach (int position in current.matrixPositions)
                     {
                         //Debug.Log("Solution: " + current.gameBoard[position]);
                     }
-                    */
+                    
                     break;
                 }
                 visited.Add(current); 
                 //current.PrintGameBoardData();
                 //Debug.Log("visited.count: " + visited.Count);
-                /*
+
                 foreach (Dictionary<int, int> state in visited)
                 {
                     Debug.Log("----------------Visited------------");
                     GameState a = new GameState(state);
                     a.PrintGameBoardData();
                 }
-                */
+
                 //Debug.Log(visited.Count);
                 GameState newState;
                 foreach (Vector3 move in PossibleMoves(current))
@@ -244,11 +241,12 @@ public class DFSAgent : MonoBehaviour
             }
         }
     }
+*/
 
-    public Dictionary<int, int> ApplyMove(Vector3 move, Dictionary<int,int> board) // Not Tested
+    public List<int> ApplyMove(Vector3 move, List<int> board) // Not Tested
     {
         //GameState newState = new GameState(state);
-        Dictionary<int, int> newBoard = new Dictionary<int, int>(board);
+        List<int> newBoard = new List<int>(board);
         int emptyPos = GetEmptyMatrixPosition(newBoard);
         int newPos = 0; // If there are no possible moves then nothing happens to the board
 
@@ -273,14 +271,25 @@ public class DFSAgent : MonoBehaviour
             Debug.Log("Error: No Possible Movement");
         }
 
-        SwapTilePositions(emptyPos, newPos, newBoard);
+        SwapTilePositions(newBoard.IndexOf(emptyPos), newBoard.IndexOf(newPos), newBoard);
         return newBoard;
     }
-    public void SwapTilePositions(int pos1, int pos2, Dictionary<int,int> gameBoard)
+    public void SwapTilePositions(int tile1, int tile2, List<int> gameBoard)
     {
-        int temp = gameBoard[pos1];
-        gameBoard[pos1] = gameBoard[pos2];
-        gameBoard[pos2] = temp;
+        int temp = gameBoard[tile1];
+        gameBoard[tile1] = gameBoard[tile2];
+        gameBoard[tile2] = temp;
+    }
+
+    public void PrintGameBoardData(List<int> gameBoard) //Works
+    {
+        Debug.Log("---------------------------------------------");
+        for (int i = 1; i < 6; i += 3)
+        {
+            Debug.Log(gameBoard[i] + " " + gameBoard[i + 1] + " " + gameBoard[i + 2]);
+        }
+        Debug.Log(gameBoard[7] + " " + gameBoard[8] + " " + gameBoard[0]);
+        Debug.Log("---------------------------------------------");
     }
 
 

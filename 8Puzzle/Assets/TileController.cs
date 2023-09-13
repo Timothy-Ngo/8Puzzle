@@ -9,7 +9,10 @@ public class TileController : MonoBehaviour
     public const int MAXROW = 3;
     public const int MAXCOL = 3;
 
-    public GameState currentState;
+
+
+
+    //public GameState currenttate;
     public Dictionary<int, int> solvedBoard = new Dictionary<int, int>
     {
         {0, 1},
@@ -27,12 +30,12 @@ public class TileController : MonoBehaviour
     public List<GameObject> spaceObjects;
     public List<Tile> tiles;
     public Tile emptyTile;
-
+    public List<int> currentState = new List<int>();
     
     // Start is called before the first frame update
     void Start()
     {
-        currentState = new GameState();
+        //currentState = new GameState();
 
         UpdateEverything();
         //currentState.PrintGameBoardData();
@@ -64,11 +67,16 @@ public class TileController : MonoBehaviour
     
     void UpdateBoardData()
     {
-        foreach (Tile tile in tiles)
+        foreach(Tile tile in tiles)
         {
-            currentState.gameBoard[tile.position] = tile.GetNum();
-            //Debug.Log(tile.position + " " + tile.GetNum());
+            currentState.Add(tile.position);
         }
+
+        for (int tileNum = 0; tileNum < currentState.Count ; tileNum++)
+        {
+            currentState[tileNum] = tiles[tileNum].position;
+        }
+        currentState[0] = emptyTile.position;
         
         //Debug.Log(currentState.gameBoard.Count);
         //currentState.PrintGameBoardData();
@@ -244,10 +252,11 @@ public class GameState
     public void PrintGameBoardData()
     {
         Debug.Log("---------------------------------------------");
-        for (int i = 0; i < 9; i += 3)
+        for (int i = 1; i < 6; i += 3)
         {
             Debug.Log(gameBoard[matrixPositions[i]] + " " + gameBoard[matrixPositions[i+1]]+  " " + gameBoard[matrixPositions[i + 2]] );
         }
+        Debug.Log(gameBoard[matrixPositions[7]] + " " + gameBoard[matrixPositions[8]] + " " + gameBoard[matrixPositions[0]]);
         Debug.Log("---------------------------------------------");
     }
 
