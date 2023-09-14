@@ -202,8 +202,8 @@ MonoBehaviour:
   - {fileID: 1563883877}
   - {fileID: 1164277521}
   emptyTile: {fileID: 1164277521}
-  shuffleMin: 60
-  shuffleMax: 100
+  shuffleMin: 8
+  shuffleMax: 12
   swapPositionOffset: {x: 0, y: 0, z: -3}
 --- !u!114 &70535988
 MonoBehaviour:
@@ -218,6 +218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tc: {fileID: 70535987}
+  matrixPositions: 0000000001000000020000000a0000000b0000000c000000140000001500000016000000
 --- !u!1 &121159724 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3765406618217255503, guid: 6f9187eeb37a58f48932b6ff58e597af, type: 3}

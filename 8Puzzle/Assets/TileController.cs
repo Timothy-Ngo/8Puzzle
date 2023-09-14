@@ -154,8 +154,8 @@ public class TileController : MonoBehaviour
         return Vector3.zero;
     }
 
-    public int shuffleMin = 60;
-    public int shuffleMax = 100;
+    public int shuffleMin = 20;
+    public int shuffleMax = 30;
     public void Shuffle()
     {
         for (int i = 0; i < Random.Range(shuffleMin, shuffleMax); i++)

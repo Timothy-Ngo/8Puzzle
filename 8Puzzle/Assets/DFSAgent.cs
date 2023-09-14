@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Android;
@@ -104,6 +105,8 @@ public class DFSAgent : MonoBehaviour
         queue.Enqueue(initialBoard);
         //initialState.PrintGameBoardData();
 
+        
+
         HashSet<Dictionary<int, int>> visited = new HashSet<Dictionary<int, int>>();
 
         //Dictionary<GameState, GameState> parent = new Dictionary<GameState, GameState>(); // <current state, parent state> Not sure if I should make it <GameState, move used to achieve this state>
@@ -151,6 +154,7 @@ public class DFSAgent : MonoBehaviour
                         //Debug.Log("Check1");
                         //Debug.Log(stack.Count);
                         queue.Enqueue(newState.gameBoard);
+                        actions.Enqueue(move);
                         //Debug.Log(stack.Count);
                     }
 
