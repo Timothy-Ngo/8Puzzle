@@ -5,64 +5,7 @@ using UnityEngine;
 
 public class TileController : MonoBehaviour
 {
-    /*
-    public const int MAXROW = 3;
-    public const int MAXCOL = 3;
-
-    public GameState currentState;
-    public Dictionary<int, int> solvedBoard = new Dictionary<int, int>
-    {
-        {0, 1},
-        {1, 2},
-        {2, 3},
-        {10, 4},
-        {11, 5},
-        {12, 6},
-        {20, 7},
-        {21, 8},
-        {22, 0}
-
-    };
-    */
-
-    // Start is called before the first frame update
-    /*
-    public void PrintTiles() 
-    {
-        foreach(Tile tile in tiles)
-        {
-            Debug.Log(tile.GetNum());
-        }
-    }
     
-    public void UpdateEverything()
-    {
-        UpdatePositions();
-        UpdateBoardData();
-    }
-
-    void UpdatePositions()
-    {
-        foreach (Tile tile in tiles)
-        {
-            tile.UpdatePosition();
-        }
-    
-    }
-
-    
-    void UpdateBoardData()
-    {
-        foreach (Tile tile in tiles)
-        {
-            currentState.gameBoard[tile.position] = tile.GetNum();
-            //Debug.Log(tile.position + " " + tile.GetNum());
-        }
-        
-        //Debug.Log(currentState.gameBoard.Count);
-        //currentState.PrintGameBoardData();
-    }
-    */
 
     [Header("Gameboard Data")]
     public List<GameObject> spaceObjects;
@@ -243,6 +186,10 @@ public class TileController : MonoBehaviour
     //------------------------------------------------------------------------------------------------------------
     public void MoveEmpty(Vector3 direction)
     {
+        if (direction == Vector3.zero)
+        {
+            return;
+        }
         RaycastHit hit;
         if (Physics.Raycast(emptyTile.transform.position, direction, out hit, maxDirectionDist))
         {
