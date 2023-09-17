@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -14,9 +15,23 @@ public class BFSAgent : MonoBehaviour
 {
     public TileController tc;
 
+    private List<Position> solvedState = new List<Position>()
+    {
+        Position.BottomRight,
+        Position.TopLeft,
+        Position.TopMiddle,
+        Position.TopRight,
+        Position.MiddleLeft,
+        Position.Center,
+        Position.MiddleRight,
+        Position.BottomLeft,
+        Position.BottomMiddle
+    };
+
     [Header("BFS Solver")]
     public float maxMoveTime = 0.5f;
     public float currentMoveTime;
+    Stack<Vector3> solutionMoves = new Stack<Vector3>();
 
     // Start is called before the first frame update
     void Start()
@@ -32,6 +47,8 @@ public class BFSAgent : MonoBehaviour
             Debug.Log("Key Pressed");
             //Debug.Log(ListToString(tc.gameBoard));
             BFS(tc.gameBoard);
+            ReconstructMoves(parentDict);
+            Debug.Log("Top of Stack" + solutionMoves.Peek());
             /*
             // Debug to see if NewState() works correctly
             List<Position> newState = new List<Position>();
@@ -66,22 +83,100 @@ public class BFSAgent : MonoBehaviour
     
     public void BFSMove()
     {
-        //List<Vector3> solvedMoves = ReconstructMoves(BFS(tc.gameBoard));
+        Debug.Log(solutionMoves.Peek());
+        tc.MoveEmpty(solutionMoves.Pop());
     }
 
     //-------------------------------------------------------------------------------
-    public List<Vector3> ReconstructMoves(Dictionary<List<Position>, List<Position>> parents)
+    public void ReconstructMoves(Dictionary<string, int> parents)
     {
-        return null;
+        Stack<Vector3> solutionPathOfMoves = new Stack<Vector3>();
+        string node = ListToString(solvedState);
+        string initialStringState = ListToString(tc.gameBoard);
+        while (node != initialStringState)
+        {
+            solutionMoves.Push(FindMove(parents[node],(int)EmptyPositionFromString(node)));
+            Debug.Log(FindMove(parents[node], (int)EmptyPositionFromString(node)));
+            node = ListToString(NewState(StringToList(node), (Position)parents[node]));
+        }
+
+    }
+
+    public Vector3 FindMove(int parent, int child)
+    {
+        int diff = parent - child;
+        Vector3 resultVector = Vector3.zero;
+        if (diff == 1) 
+        {
+            resultVector = Vector3.left;
+        }
+        else if (diff == -10)
+        {
+            resultVector = Vector3.down;
+        }
+        else if (diff == -1)
+        {
+            resultVector = Vector3.right;
+        }
+        else if (diff == 10)
+        {
+            resultVector = Vector3.up;
+        }
+        return resultVector; 
+    }
+
+    public Position EmptyPositionFromString(string state)
+    {
+        state = state.Trim();
+        string currentElement = string.Empty;
+        Position emptyPosition = Position.Center; // Will return center if the loop doesn't work properly
+        foreach(char c in state)
+        {
+            if (c == '.')
+            {
+                emptyPosition = (Position)int.Parse(currentElement);
+                break;
+            }
+            else 
+            {
+                currentElement += c;
+            }
+        }
+
+        return emptyPosition;
+    }
+    public List<Position> StringToList(string state)
+    {
+        state = state.Trim();
+        string currentElement = string.Empty;
+        List<Position> resultList = new List<Position>();
+        foreach (char c in state)
+        {
+            if (c == '.')
+            {
+                resultList.Add((Position)int.Parse(currentElement));
+                currentElement = string.Empty;
+                
+            }
+            else
+            {
+                currentElement += c;
+            }
+
+        }
+        return resultList;
+
     }
 
     //-------------------------------------------------------------------------------
+    Dictionary<string, int> parentDict = new Dictionary<string, int>();
+
     public bool BFS(List<Position> initialState)
     {
         Queue<List<Position>> frontier = new Queue<List<Position>>();
         HashSet<string> stringFrontier = new HashSet<string>(); 
         HashSet<string> explored = new HashSet<string>();
-        //Dictionary<List<Position>, List<Position>> parents = new Dictionary<List<Position>, List<Position>>();
+        Dictionary<string, int> parents = new Dictionary<string, int>();
         if (IsGoalState(initialState))
         {
             Debug.Log("GOAL STATE FOUND");
@@ -107,12 +202,13 @@ public class BFSAgent : MonoBehaviour
             {
                 List<Position> newState = NewState(currentState, position);
                 string newStringState = ListToString(newState);
-                //parents[newState] = currentState;
-                if (!explored.Contains(newStringState) || !stringFrontier.Contains(newStringState))
+                if (!(explored.Contains(newStringState) || stringFrontier.Contains(newStringState)))
                 {
+                    parents[newStringState] = (int)currentState[0];
                     if (IsGoalState(newState))
                     {
                         Debug.Log("GOAL STATE FOUND");
+                        parentDict = new Dictionary<string, int>(parents);
                         return true; 
                     }
                     frontier.Enqueue(newState);
@@ -120,11 +216,16 @@ public class BFSAgent : MonoBehaviour
                     //Debug.Log(frontier.Count);
                 }
             }
-
+            if (explored.Count >= 150000)
+            {
+                Debug.Log("# of Explored States: " + explored.Count);
+                Debug.Log("# of States in Frontier: " + frontier.Count);
+                break;  
+            }
 
         }
+        Debug.Log("Could not find solution");
         return false;
-
     }
 
 
@@ -133,7 +234,7 @@ public class BFSAgent : MonoBehaviour
         string resultString = string.Empty;
         foreach(Position position in board)
         {
-            resultString += ((int)position).ToString();
+            resultString += ((int)position).ToString() + ".";
         }
         return resultString;
         
