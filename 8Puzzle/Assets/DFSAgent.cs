@@ -12,6 +12,7 @@ using UnityEngine.UIElements;
 
 public class DFSAgent : MonoBehaviour
 {
+    /*
     //public GameState gs = new GameState();
 
     public TileController tc;
@@ -32,7 +33,7 @@ public class DFSAgent : MonoBehaviour
 
             Debug.Log("Key Pressed");
             //DFS(tc.currentState.gameBoard);
-            BFS(tc.currentState.gameBoard);
+            //BFS(tc.currentState.gameBoard);
         }
         
     }
@@ -76,6 +77,8 @@ public class DFSAgent : MonoBehaviour
         Debug.Log("Could not find Empty Matrix Position");
         return -1; // Could not find the empty Position
     }
+
+    
     public List<Vector3> PossibleMoves(Dictionary<int,int> board) 
     {
         int emptyPos = GetEmptyMatrixPosition(board);
@@ -133,14 +136,14 @@ public class DFSAgent : MonoBehaviour
                 
                                                 //current.PrintGameBoardData();
                                                 //Debug.Log("visited.count: " + visited.Count);
-                /*
+                ///*
                 foreach (Dictionary<int, int> state in visited)
                 {
                     Debug.Log("----------------Visited------------");
                     GameState a = new GameState(state);
                     a.PrintGameBoardData();
                 }
-                */
+                ///*
                 //Debug.Log(visited.Count);
                 GameState newState;
                 foreach (Vector3 move in PossibleMoves(currentBoard))
@@ -154,7 +157,7 @@ public class DFSAgent : MonoBehaviour
                         //Debug.Log("Check1");
                         //Debug.Log(stack.Count);
                         queue.Enqueue(newState.gameBoard);
-                        actions.Enqueue(move);
+                        //actions.Enqueue(move);
                         //Debug.Log(stack.Count);
                     }
 
@@ -162,14 +165,14 @@ public class DFSAgent : MonoBehaviour
                 
 
             }
-            /*
+            
             if (queue.Count > 14000000)
             {
                 Debug.Log(queue.Count);
                 Debug.Log(visited.Count);
                 break;
             }
-            */
+            
 
         }
     }
@@ -201,25 +204,25 @@ public class DFSAgent : MonoBehaviour
                     Debug.Log("REACHED GOAL STATE");
                     Debug.Log(visited.Count);
                     //current.PrintGameBoardData();
-                    /*
+                    ///*
                     foreach (int position in current.matrixPositions)
                     {
                         //Debug.Log("Solution: " + current.gameBoard[position]);
                     }
-                    */
+                    //
                     break;
                 }
                 visited.Add(current); 
                 //current.PrintGameBoardData();
                 //Debug.Log("visited.count: " + visited.Count);
-                /*
+                ///*
                 foreach (Dictionary<int, int> state in visited)
                 {
                     Debug.Log("----------------Visited------------");
                     GameState a = new GameState(state);
                     a.PrintGameBoardData();
                 }
-                */
+                //
                 //Debug.Log(visited.Count);
                 GameState newState;
                 foreach (Vector3 move in PossibleMoves(current))
@@ -287,7 +290,7 @@ public class DFSAgent : MonoBehaviour
         gameBoard[pos2] = temp;
     }
 
-
+    */
 }
 
 

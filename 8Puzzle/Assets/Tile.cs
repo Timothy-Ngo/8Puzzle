@@ -1,25 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using UnityEngine;
+
+[System.Serializable]
+public enum Position
+{
+    TopLeft = 00,
+    TopMiddle = 01,
+    TopRight = 02,
+    MiddleLeft = 10,
+    Center = 11,
+    MiddleRight = 12,
+    BottomLeft = 20,
+    BottomMiddle = 21,
+    BottomRight = 22
+}
 
 public class Tile : MonoBehaviour
 {
-    public int position; // Parent Game Object name in the form of a matrix position
-    // Start is called before the first frame update
+    public int number; 
+    public Position startPosition;
+    public Position position;
     void Start()
     {
-        UpdatePosition();
-    }
-
-    public void UpdatePosition()
-    {
-        position = int.Parse(transform.parent.gameObject.name);
-        //Debug.Log("Tile " + name + " is in position " + position);
-    }
-
-    public int GetNum()
-    {
+        position = startPosition;
         
-        return int.Parse(name);
     }
+
+    public void SetPosition(Position pos)
+    {
+        position = pos;
+    }
+
+    // DEBUGGING
+
+    public void Print()
+    {
+        Debug.Log("Tile " + number + ", Position " + position);
+    }
+
 }
+

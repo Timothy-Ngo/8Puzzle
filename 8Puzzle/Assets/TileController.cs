@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
+
 
 public class TileController : MonoBehaviour
 {
+    /*
     public const int MAXROW = 3;
     public const int MAXCOL = 3;
 
@@ -23,21 +23,10 @@ public class TileController : MonoBehaviour
         {22, 0}
 
     };
-    
-    public List<GameObject> spaceObjects;
-    public List<Tile> tiles;
-    public Tile emptyTile;
+    */
 
-    
     // Start is called before the first frame update
-    void Start()
-    {
-        currentState = new GameState();
-
-        UpdateEverything();
-        //currentState.PrintGameBoardData();
-
-    }
+    /*
     public void PrintTiles() 
     {
         foreach(Tile tile in tiles)
@@ -73,13 +62,83 @@ public class TileController : MonoBehaviour
         //Debug.Log(currentState.gameBoard.Count);
         //currentState.PrintGameBoardData();
     }
-    
-    
-   
-    
-    public RaycastHit hit;
+    */
 
-    // Update is called once per frame
+    [Header("Gameboard Data")]
+    public List<GameObject> spaceObjects;
+    public Tile emptyTile;
+    [Tooltip("Contains all numbered tiles")]
+    public List<Tile> tiles;
+    public List<Position> gameBoard;
+
+    [Header("Shuffle Settings")]
+    //public int shuffleMax = 20;
+    public bool doShuffle = false;
+    public float timePerMove = 1.0f;
+    public float shuffleTimer;
+    private Vector3 prevVector = Vector3.zero;
+    [Header("Misc")]
+    [Tooltip("Local offset position for tile object to be rendered from the Space parent object.")]
+    public Vector3 swapPositionOffset = new Vector3(0, 0, -3);
+    [Tooltip("Utilized for mouse click functionality to obtain information about what tile object is hit.")]
+    public RaycastHit hit;
+    
+    private Vector3[] cardinalDir = { Vector3.up, Vector3.right, Vector3.down, Vector3.left };
+    private float maxDirectionDist = 30;
+
+    //-----------DEBUGGING----------------------------------------------------------------------------------------
+    
+    public void PrintTiles()
+    {
+        Debug.Log("-----------Print Tiles-----------------");
+        foreach (Tile tile in tiles)
+        {
+            tile.Print();
+        }
+        PrintEmptyTile();
+    }    
+
+    public void PrintEmptyTile()
+    {
+        Debug.Log("Empty Tile, " + emptyTile.position);
+    }
+
+    public void PrintBoard(List<Position> board)
+    {
+        Debug.Log("-----------Print Board-----------------");
+        for (int i = 0; i < board.Count; i++)
+        {
+            Debug.Log("Tile " + i + " is at position " + board[i]); 
+        }
+    }
+
+    //-------DATA CODE--------------------------------------------------------------------------------------------
+
+    public void SyncBoardWithTiles() // Dependent on the Tiles numbers staying readonly
+    {
+        gameBoard[0] = emptyTile.position;
+        
+        for (int i = 1; i < 9; i++)
+        {
+            gameBoard[i] = tiles[i-1].position;
+        }
+        
+    }
+    
+
+    //-------GAME CODE----------------------------------------------------------------------------------------
+    void Start()
+    {
+
+
+
+
+        // PrintTiles
+        //currentState = new GameState();
+        //UpdateEverything();
+        //currentState.PrintGameBoardData();
+
+    }
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -122,16 +181,23 @@ public class TileController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.S))
         {
-            Shuffle();
+            doShuffle = !doShuffle;
+            shuffleTimer = timePerMove;
+        }
+
+        if (doShuffle)
+        {
+            shuffleTimer -= Time.deltaTime;
+            if (shuffleTimer <= 0)
+            {
+                prevVector = Shuffle(prevVector);
+                shuffleTimer = timePerMove;
+            }
         }
 
         
     }
-
-
-    private Vector3[] cardinalDir = { Vector3.up, Vector3.right, Vector3.down, Vector3.left };
-    private float maxDirectionDist = 30;
-
+    //------------------------------------------------------------------------------------------------------------
     public Vector3 IsAdjacentToEmpty(GameObject tile)
     {
         RaycastHit adjacentHit;
@@ -153,18 +219,28 @@ public class TileController : MonoBehaviour
 
         return Vector3.zero;
     }
-
-    public int shuffleMin = 20;
-    public int shuffleMax = 30;
-    public void Shuffle()
+    //------------------------------------------------------------------------------------------------------------
+    public Vector3 Shuffle(Vector3 prevVector)
     {
+        /*
         for (int i = 0; i < Random.Range(shuffleMin, shuffleMax); i++)
         {
             MoveEmpty(cardinalDir[Random.Range(0,4)]);
         }
-        UpdateEverything();
-    }
+        */
+        Vector3 randomVector = cardinalDir[Random.Range(0, 4)];
 
+        while (randomVector == (-prevVector))
+        {
+            randomVector = cardinalDir[Random.Range(0, 4)];
+        }
+
+        MoveEmpty(randomVector);
+
+        return randomVector;
+        
+    }
+    //------------------------------------------------------------------------------------------------------------
     public void MoveEmpty(Vector3 direction)
     {
         RaycastHit hit;
@@ -172,28 +248,40 @@ public class TileController : MonoBehaviour
         {
             if (hit.collider.gameObject != null)
             {
-                swapTilePositions(hit.collider.gameObject, emptyTile.gameObject);
+                SwapTilePositions(hit.collider.gameObject, emptyTile.gameObject);
                 //Debug.Log("Move Empty Raycast hits: " + hit.collider.gameObject.name);
-                UpdateEverything();
+                //UpdateEverything();
             }
         }
     }
+    //------------------------------------------------------------------------------------------------------------
 
-    public Vector3 swapPositionOffset = new Vector3(0, 0, -3);
-    void swapTilePositions(GameObject tile1,  GameObject tile2)
+    void SwapTilePositions(GameObject tile1,  GameObject tile2)
     {
-        
+        // Changes Object
         Transform temp = tile1.transform.parent;
         tile1.transform.SetParent(tile2.transform.parent);
         tile1.transform.localPosition = swapPositionOffset;
         tile2.transform.SetParent(temp);
         tile2.transform.localPosition = swapPositionOffset;
-    
+
+        // Changes Tile 
+        Position tempPos = tile1.GetComponent<Tile>().position;
+        tile1.GetComponent<Tile>().position = tile2.GetComponent<Tile>().position;
+        tile2.GetComponent<Tile>().position = tempPos;
+
+        // Updates Board
+        SyncBoardWithTiles();
+
+        // Debugging
+        //PrintTiles();
+        //PrintEmptyTile();
+        //PrintBoard();
     }
 
     
 }
-
+/*
 public class GameState
 {
     public Dictionary<int, int> gameBoard = new Dictionary<int, int>(); // <Space Matrix Position, Tile Number>
@@ -305,3 +393,4 @@ public class GameState
     }
 
 }
+    */
