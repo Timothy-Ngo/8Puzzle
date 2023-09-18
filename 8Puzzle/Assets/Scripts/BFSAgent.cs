@@ -40,19 +40,8 @@ public class BFSAgent : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            Debug.Log("Key Pressed");
-            BFS(tc.gameBoard);
-            ReconstructMoves(parentDict);
-        }
 
         // Shuffle
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            StartShuffle();
-        }
-
         if (doShuffle && numberOfShuffles > 0)
         {
             shuffleTimer -= Time.deltaTime;
@@ -70,11 +59,6 @@ public class BFSAgent : MonoBehaviour
         }
 
         // AI Solver
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            BFSSolver();
-        }
-
         if (activeSolver && solutionMoves.Count > 0)
         {
             timer -= Time.deltaTime;
