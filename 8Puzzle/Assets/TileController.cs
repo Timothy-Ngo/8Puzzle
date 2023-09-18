@@ -14,15 +14,13 @@ public class TileController : MonoBehaviour
     public List<Tile> tiles;
     public List<Position> gameBoard;
 
-    [Header("Shuffle Settings")]
-    //public int shuffleMax = 20;
-    public bool doShuffle = false;
-    public float timePerMove = 1.0f;
-    public float shuffleTimer;
-    private Vector3 prevVector = Vector3.zero;
+    
     [Header("Misc")]
     [Tooltip("Local offset position for tile object to be rendered from the Space parent object.")]
     public Vector3 swapPositionOffset = new Vector3(0, 0, -3);
+    public AudioSource tileMoveSfx;
+    
+    
     [Tooltip("Utilized for mouse click functionality to obtain information about what tile object is hit.")]
     public RaycastHit hit;
     
@@ -122,21 +120,7 @@ public class TileController : MonoBehaviour
             MoveEmpty(Vector3.right);
         }
 
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            doShuffle = !doShuffle;
-            shuffleTimer = timePerMove;
-        }
-
-        if (doShuffle)
-        {
-            shuffleTimer -= Time.deltaTime;
-            if (shuffleTimer <= 0)
-            {
-                prevVector = Shuffle(prevVector);
-                shuffleTimer = timePerMove;
-            }
-        }
+        
 
         
     }
@@ -163,26 +147,8 @@ public class TileController : MonoBehaviour
         return Vector3.zero;
     }
     //------------------------------------------------------------------------------------------------------------
-    public Vector3 Shuffle(Vector3 prevVector)
-    {
-        /*
-        for (int i = 0; i < Random.Range(shuffleMin, shuffleMax); i++)
-        {
-            MoveEmpty(cardinalDir[Random.Range(0,4)]);
-        }
-        */
-        Vector3 randomVector = cardinalDir[Random.Range(0, 4)];
+    
 
-        while (randomVector == (-prevVector))
-        {
-            randomVector = cardinalDir[Random.Range(0, 4)];
-        }
-
-        MoveEmpty(randomVector);
-
-        return randomVector;
-        
-    }
     //------------------------------------------------------------------------------------------------------------
     public void MoveEmpty(Vector3 direction)
     {
@@ -198,6 +164,7 @@ public class TileController : MonoBehaviour
                 SwapTilePositions(hit.collider.gameObject, emptyTile.gameObject);
                 //Debug.Log("Move Empty Raycast hits: " + hit.collider.gameObject.name);
                 //UpdateEverything();
+                tileMoveSfx.Play();
             }
         }
     }

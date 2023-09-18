@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using UnityEditorInternal;
 using UnityEngine;
+using Lean.Gui;
 
 enum Move
 {
@@ -29,14 +26,15 @@ public class BFSAgent : MonoBehaviour
     };
 
     [Header("BFS Solver")]
-    public float maxMoveTime = 0.5f;
-    public float currentMoveTime;
+    public float maxMoveTime = 1f;
+    float timer;
+    bool activeSolver = false;
     Stack<Vector3> solutionMoves = new Stack<Vector3>();
 
     // Start is called before the first frame update
     void Start()
     {
-        currentMoveTime = maxMoveTime;
+        
     }
 
 
@@ -48,7 +46,6 @@ public class BFSAgent : MonoBehaviour
             //Debug.Log(ListToString(tc.gameBoard));
             BFS(tc.gameBoard);
             ReconstructMoves(parentDict);
-            Debug.Log("Top of Stack" + solutionMoves.Peek());
             /*
             // Debug to see if NewState() works correctly
             List<Position> newState = new List<Position>();
@@ -68,9 +65,48 @@ public class BFSAgent : MonoBehaviour
             }
             */
         }
+        // Shuffle
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            StartShuffle();
+        }
+
+        if (doShuffle && numberOfShuffles > 0)
+        {
+            shuffleTimer -= Time.deltaTime;
+            if (shuffleTimer <= 0)
+            {
+                prevVector = Shuffle(prevVector);
+                shuffleTimer = timePerMove;
+                numberOfShuffles -= 1;
+            }
+            if (numberOfShuffles <= 0)
+            {
+                doShuffle = false;
+                Debug.Log("Finished Shuffling");
+            }
+        }
+
+        // AI Solver
         if (Input.GetKeyDown(KeyCode.A))
         {
-            BFSMove();
+            BFSSolver();
+        }
+
+        if (activeSolver && solutionMoves.Count > 0)
+        {
+            timer -= Time.deltaTime;
+            if (timer <= 0)
+            {
+                tc.MoveEmpty(solutionMoves.Pop());
+                timer = maxMoveTime;
+            }
+            if (solutionMoves.Count == 0)
+            {
+                activeSolver = false;
+                CheckForGoalState();
+                Debug.Log("Finished Solving");
+            }
         }
     }
     //---------------------DEBUGGING-------------------------------------------------
@@ -81,11 +117,16 @@ public class BFSAgent : MonoBehaviour
     //-------------------------------------------------------------------------------
 
     
-    public void BFSMove()
+    public void BFSSolver()
     {
-        Debug.Log(solutionMoves.Peek());
-        tc.MoveEmpty(solutionMoves.Pop());
+        BFS(tc.gameBoard);
+        ReconstructMoves(parentDict);
+        timer = maxMoveTime;
+        activeSolver = true;
+          
     }
+  
+    
 
     //-------------------------------------------------------------------------------
     public void ReconstructMoves(Dictionary<string, int> parents)
@@ -96,7 +137,7 @@ public class BFSAgent : MonoBehaviour
         while (node != initialStringState)
         {
             solutionMoves.Push(FindMove(parents[node],(int)EmptyPositionFromString(node)));
-            Debug.Log(FindMove(parents[node], (int)EmptyPositionFromString(node)));
+            //Debug.Log(FindMove(parents[node], (int)EmptyPositionFromString(node)));
             node = ListToString(NewState(StringToList(node), (Position)parents[node]));
         }
 
@@ -212,16 +253,10 @@ public class BFSAgent : MonoBehaviour
                         return true; 
                     }
                     frontier.Enqueue(newState);
-                    //Debug.Log("Added");
-                    //Debug.Log(frontier.Count);
+                    
                 }
             }
-            if (explored.Count >= 150000)
-            {
-                Debug.Log("# of Explored States: " + explored.Count);
-                Debug.Log("# of States in Frontier: " + frontier.Count);
-                break;  
-            }
+            
 
         }
         Debug.Log("Could not find solution");
@@ -264,8 +299,72 @@ public class BFSAgent : MonoBehaviour
 
         return true;
     }
+
+    public LeanPulse leanSolved;
+    public LeanPulse leanUnsolved;
+    public AudioSource winSfx;
+    public AudioSource lossSfx;
+    public void CheckForGoalState()
+    {
+        if (IsGoalState(tc.gameBoard))
+        {
+            leanSolved.Pulse();
+            winSfx.Play();
+        }
+        else
+        {
+            leanUnsolved.Pulse();
+            lossSfx.Play();
+        }
+    }
     //-------------------------------------------------------------------------------
 
+    [Header("Shuffle Settings")]
+    //public int shuffleMax = 20;
+    public bool doShuffle = false;
+    public int halfMinNumberOfShuffles = 5;
+    public int halfMaxNumberOfShuffles = 10;
+    public int numberOfShuffles;
+    public float timePerMove = 1.0f;
+    public float shuffleTimer;
+    private Vector3 prevVector = Vector3.zero;
+
+    public void StartShuffle()
+    {
+        if (!doShuffle)
+        {
+            doShuffle = true;
+            shuffleTimer = timePerMove;
+            numberOfShuffles = UnityEngine.Random.Range(halfMinNumberOfShuffles, halfMaxNumberOfShuffles) * 2;
+        }
+        else
+        {
+            Debug.Log("Shuffle in progress");
+        }
+    }
+    public Vector3 RandomMove(List<Position> board)
+    {
+        List<Position> possibleMoves = new List<Position>();
+        possibleMoves = PossibleMoves(board);
+        return FindMove((int)board[0], (int)possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)]);
+    }
+
+    public Vector3 Shuffle(Vector3 prevVector)
+    {
+        
+        Vector3 randomVector = RandomMove(tc.gameBoard);
+
+        while (randomVector == (-prevVector))
+        {
+            randomVector = RandomMove(tc.gameBoard);
+        }
+
+        tc.MoveEmpty(randomVector);
+
+        return randomVector;
+
+    }
+    //-------------------------------------------------------------------------------
     public List<Position> PossibleMoves(List<Position> board)
     {
         // Find Empty tile position
