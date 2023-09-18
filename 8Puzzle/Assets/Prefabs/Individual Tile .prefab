@@ -59,6 +59,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf20f264c75b9646b836e5b789f4c95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  number: 0
+  startPosition: 0
+  position: 0
 --- !u!1 &1777082430478632617
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,7 +151,7 @@ TextMesh:
   m_Alignment: 0
   m_TabSize: 4
   m_FontSize: 300
-  m_FontStyle: 0
+  m_FontStyle: 1
   m_RichText: 1
   m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   m_Color:
